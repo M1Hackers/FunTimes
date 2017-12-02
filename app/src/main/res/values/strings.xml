@@ -1,4 +1,13 @@
 <resources>
     <string name="app_name">Fun Times</string>
     <string name="action_settings">Settings</string>
+    <string name="welcome_message">Welcome to Fun Times!\n\nThis app will analyze the pictures taken with your camera, and try to recommend nearby places based on their content.\n\nHave fun!\n- The M1Hackers -</string>
+    <string-array name="img_num_array">
+        <item>10</item>
+        <item>20</item>
+        <item>30</item>
+        <item>40</item>
+        <item>50</item>
+        <item>100</item>
+    </string-array>
 </resources>
