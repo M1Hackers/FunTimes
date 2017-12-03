@@ -46,6 +46,7 @@ import java.util.Hashtable;
  */
 public class DisplayMapFragment extends Fragment  implements OnMapReadyCallback {
 
+
     private static final Hashtable<String, Integer> requestCodeMap = new Hashtable<String, Integer>() {{
         put(Manifest.permission.ACCESS_FINE_LOCATION, 2);
     }};
@@ -56,6 +57,7 @@ public class DisplayMapFragment extends Fragment  implements OnMapReadyCallback 
     private static final String OUT_JSON = "/json";
     private static final String API_KEY = "AIzaSyCoyESSSVsupzauMVKA24FDf_DC4ETsimI";
 
+    public static ArrayList<String> categories = null;
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationClient;
     protected Location mLastLocation;
@@ -127,12 +129,15 @@ public class DisplayMapFragment extends Fragment  implements OnMapReadyCallback 
                     public void onComplete(@NonNull Task<Location> task) {
                         if (task.isSuccessful() && task.getResult() != null) {
                             mLastLocation = task.getResult();
-                            Inputobj inp = new Inputobj();
-                            inp.keyword = "books";
-                            inp.lat = mLastLocation.getLatitude();
-                            inp.lon = mLastLocation.getLongitude();
-                            longop l = new longop();
-                            l.execute(inp);
+                            for(int i=0;i<categories.size();i++){
+                                Inputobj inp = new Inputobj();
+//                            inp.keyword = "books";
+                                inp.keyword = categories.get(i);
+                                inp.lat = mLastLocation.getLatitude();
+                                inp.lon = mLastLocation.getLongitude();
+                                longop l = new longop();
+                                l.execute(inp);
+                            }
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude()),
                                     14.0f));
@@ -151,6 +156,10 @@ public class DisplayMapFragment extends Fragment  implements OnMapReadyCallback 
     private boolean checkPermission(String permissionId) {
         int result = ContextCompat.checkSelfPermission(DisplayMapFragment.this.getActivity(),permissionId);
         return (result == PackageManager.PERMISSION_GRANTED);
+    }
+
+    public void setCategories(ArrayList<String> input){
+        categories = input;
     }
 
     /**
