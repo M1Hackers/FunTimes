@@ -107,11 +107,11 @@ public class MainActivity extends AppCompatActivity {
         switch(requestCode) {
             case storagePermissionRequestCode:
                 if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(MainActivity.this, getString(R.string.permission_granted_toast),
-                            Toast.LENGTH_LONG).show();
+                    if(BuildConfig.DEBUG) Toast.makeText(MainActivity.this,
+                            getString(R.string.permission_granted_toast), Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(MainActivity.this, getString(R.string.permission_denied_toast),
-                            Toast.LENGTH_LONG).show();
+                    if(BuildConfig.DEBUG) Toast.makeText(MainActivity.this,
+                            getString(R.string.permission_denied_toast), Toast.LENGTH_LONG).show();
                 }
                 break;
         }
