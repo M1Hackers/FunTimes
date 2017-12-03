@@ -10,4 +10,5 @@
         <item>50</item>
         <item>100</item>
     </string-array>
+    <string name="title_activity_maps">Map</string>
 </resources>
