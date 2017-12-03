@@ -1,17 +1,28 @@
 package dev.m1hackers.funtimes;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final int storagePermissionRequestCode = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Set up Spinner
         Spinner imgNumSpinner = findViewById(R.id.img_num_spinner);
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> imgNumSpinnerAdapter = ArrayAdapter.createFromResource(
@@ -36,6 +48,22 @@ public class MainActivity extends AppCompatActivity {
         // Specify the layout to use when the list of choices appears
         imgNumSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         imgNumSpinner.setAdapter(imgNumSpinnerAdapter);
+
+        // Handle button press
+        Button uploadButton = findViewById(R.id.upload_button);
+        uploadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Check whether we are installed on Android 6.0+
+                if(Build.VERSION.SDK_INT >= 23) {
+                    if(checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                        Log.d("permission","Storage permission granted");
+                    } else {
+                        requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+                    }
+                }
+            }
+        });
 
 
     }
@@ -60,5 +88,32 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /* Check if we have a certain permission. */
+    private boolean checkPermission(String permissionId) {
+        int result = ContextCompat.checkSelfPermission(MainActivity.this,permissionId);
+        return (result == PackageManager.PERMISSION_GRANTED);
+    }
+
+    /* Displays request dialog for permission. */
+    private void requestPermission(String permissionId) {
+        ActivityCompat.requestPermissions(this, new String[]{permissionId},storagePermissionRequestCode);
+    }
+
+    /* Return point for permissions dialog, toasts the result. */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch(requestCode) {
+            case storagePermissionRequestCode:
+                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(MainActivity.this, getString(R.string.permission_granted_toast),
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, getString(R.string.permission_denied_toast),
+                            Toast.LENGTH_LONG).show();
+                }
+                break;
+        }
     }
 }
