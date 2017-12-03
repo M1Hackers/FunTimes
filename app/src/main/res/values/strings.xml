@@ -13,6 +13,9 @@
         <item>50</item>
         <item>100</item>
     </string-array>
-    <string name="permission_granted_toast">Permission granted!</string>
-    <string name="permission_denied_toast">Permission denied&#8230; :(</string>
+    <string name="permission_granted_msg">Permission granted!</string>
+    <string name="permission_denied_msg">Permission denied&#8230; :(</string>
+    <string name="no_storage_msg">No SD Card detected!</string>
+    <string name="no_pictures_msg">No pictures found!</string>
+    <string name="cant_read_pics_msg">Unable to read pictures.</string>
 </resources>
