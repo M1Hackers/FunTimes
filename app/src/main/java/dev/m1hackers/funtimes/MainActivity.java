@@ -38,6 +38,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+        if(checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)){
+            Log.d("permission","Storage permission granted");
+        } else {
+            requestPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -72,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
                     }
+
                 }
             }
         });

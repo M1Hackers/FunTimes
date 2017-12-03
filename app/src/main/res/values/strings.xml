@@ -18,4 +18,5 @@
     <string name="no_storage_msg">No SD Card detected!</string>
     <string name="no_pictures_msg">No pictures found!</string>
     <string name="cant_read_pics_msg">Unable to read pictures.</string>
+    <string name="title_activity_maps">Map</string>
 </resources>
