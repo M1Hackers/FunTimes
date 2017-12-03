@@ -181,11 +181,12 @@ public class WelcomeFragment extends Fragment {
             return;
         }
 
-        File imgDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-        // Check that there is a DCIM (camera pictures) directory and we can read it
+        File dcimDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+        File imgDirectory = new File(dcimDirectory.getPath() + "/Camera");
 
+        // Check that there is a DCIM/Camera directory and we can read it
         // List all images in DCIM directory
-        File[] imgList = listDirectoryRecursive(imgDirectory);
+        File[] imgList = listDirectoryRecursive(imgDirectory, ".thumbnails");
         // Check that there was a DCIM (camera pictures) directory and we could read it
         if(imgList == null) {
             Toast.makeText(WelcomeFragment.this.getActivity(), getString(R.string.no_pictures_msg),
@@ -221,7 +222,7 @@ public class WelcomeFragment extends Fragment {
 
     }
 
-    private File[] listDirectoryRecursive(File dir) {
+    private File[] listDirectoryRecursive(File dir, String ignore) {
         // Check that this is a directory that we can read
         if(!dir.exists() || !dir.canRead() || !dir.isDirectory()) return null;
 
@@ -230,11 +231,16 @@ public class WelcomeFragment extends Fragment {
         List<File> fileList = new ArrayList<>(Arrays.asList(fileArray));
         // Iterate through files (and directories) in the directory
         for(int i = 0; i < fileList.size(); i++) {
-            if(fileList.get(i).isDirectory()) {
-                File[] subDirFiles = listDirectoryRecursive(fileList.get(i));
-                fileList.remove(i);
-                i--;
-                if(subDirFiles != null) fileList.addAll(Arrays.asList(subDirFiles));
+            File cFile = fileList.get(i);
+            if(cFile.isDirectory()) {
+                if(ignore != null && ignore.contains(cFile.getName())) {
+                    fileList.remove(i);
+                } else {
+                    File[] subDirFiles = listDirectoryRecursive(fileList.get(i), null);
+                    fileList.remove(i);
+                    i--;
+                    if (subDirFiles != null) fileList.addAll(Arrays.asList(subDirFiles));
+                }
             }
         }
 
@@ -246,6 +252,14 @@ public class WelcomeFragment extends Fragment {
      * @param files array of {@link File}s to upload
      */
     private void uploadFiles(File[] files) {
+        String message = "";
+
+        for(File file: files) {
+            message += file.getPath();
+            message += "\n";
+        }
+        Toast.makeText(WelcomeFragment.this.getActivity(),message,Toast.LENGTH_LONG).show();
+
         // TODO: implement file uploading.
     }
 }
