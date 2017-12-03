@@ -1,0 +1,15 @@
+"{
+  \"requests\":[
+    {
+      \"image\":{
+        \"content\":\"abc\"
+      },
+      \"features\":[
+        {
+          \"type\":\"LABEL_DETECTION\",
+          \"maxResults\":1
+        }
+      ]
+    }
+  ]
+}"
