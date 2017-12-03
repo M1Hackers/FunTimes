@@ -4,15 +4,14 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,35 +21,16 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-
-import java.io.BufferedWriter;
-import java.util.Scanner;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.Array;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
-import java.io.ByteArrayOutputStream;
-
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Base64;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -278,15 +258,12 @@ public class WelcomeFragment extends CustomFragment {
         Log.d(LOG_TAG,"Sending files.");
         StringBuilder message = new StringBuilder();
 
-        String message = "";
         String returned = "";
         FileInputStream fis = null;
         ArrayList<String> return_list = new ArrayList<>(3);
         for(File file: files) {
             message.append(file.getPath());
             message.append("\n");
-            message += file.getPath();
-            message += "\n";
             try{
                 fis = new FileInputStream(file);
             }catch(FileNotFoundException e){
@@ -317,124 +294,19 @@ public class WelcomeFragment extends CustomFragment {
         //imgListReadyCallback.onImgListReady(files);
         Log.i("herehere",returned);
 //        return returned;
-        PostRequest l = new PostRequest();
+        RequestImageKeywordsTask l = new RequestImageKeywordsTask();
         l.execute(return_list);
     }
     public static Bitmap scaleDown(Bitmap realImage, float maxImageSize,
                                    boolean filter) {
         float ratio = Math.min(
-                (float) maxImageSize / realImage.getWidth(),
-                (float) maxImageSize / realImage.getHeight());
-        int width = Math.round((float) ratio * realImage.getWidth());
-        int height = Math.round((float) ratio * realImage.getHeight());
+                maxImageSize / realImage.getWidth(),
+                maxImageSize / realImage.getHeight());
+        int width = Math.round(ratio * realImage.getWidth());
+        int height = Math.round(ratio * realImage.getHeight());
 
-        Bitmap newBitmap = Bitmap.createScaledBitmap(realImage, width,
+        return Bitmap.createScaledBitmap(realImage, width,
                 height, filter);
-        return newBitmap;
-    }
-
-    private class PostRequest extends AsyncTask<ArrayList<String>,Void,ArrayList<String>> {
-        @Override
-        protected ArrayList<String> doInBackground(ArrayList<String>...inps){
-            ArrayList<String> inp = inps[0];
-            ArrayList<String> output = new ArrayList<>();
-            for(int i=0;i<inp.size();i++) {
-                String enc_string = inp.get(i);
-                HttpURLConnection conn = null;
-                String resp = "";
-
-                try {
-                    StringBuilder sb = new StringBuilder("https://vision.googleapis.com/v1/images:annotate?key=" + API_key);
-                    URL url = new URL(sb.toString());
-                    //Log.i(myTag,sb.toString());
-                    conn = (HttpURLConnection) url.openConnection();
-                    conn.setDoOutput(true);
-                    conn.setDoInput(true);
-                    conn.setRequestMethod("POST");
-                    conn.setRequestProperty("Content-Type", "application/json");
-                    Log.d("WelcomeFragment","Connection established.");
-
-                    JSONObject jsonRequestObj = new JSONObject();
-                    try {
-                        JSONObject jsonRequest = new JSONObject();
-                        JSONObject jsonFeature = new JSONObject();
-                        JSONObject jsonImage = new JSONObject();
-                        jsonFeature.put("type","LABEL_DETECTION");
-                        jsonImage.put("content",enc_string);
-                        jsonRequest.put("features",jsonFeature);
-                        jsonRequest.put("image",jsonImage);
-                        jsonRequestObj.put("requests",jsonRequest);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    Log.d("WelcomeFragment",jsonRequestObj.toString());
-
-                    BufferedWriter in = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
-                    Log.d("WelcomeFragment","Got output stream");
-                    in.write(jsonRequestObj.toString()); //("{\"requests\":  [{ \"features\":  [ {\"type\": \"LABEL_DETECTION\""+ "}], \"image\": {\"content\": " + enc_string + "}}]}");
-                    in.flush();
-                    in.close();
-                    Log.d("here",in.toString());
-                    String response = conn.getResponseMessage();
-
-                    if (conn.getInputStream() == null) {
-                        Log.e("here",url.toString());
-                        return output;
-                    }
-
-                    Scanner httpScanner = new Scanner(conn.getInputStream());
-                    while (httpScanner.hasNext()) {
-                        String line = httpScanner.nextLine();
-                        resp += line;
-                    }
-                    httpScanner.close();
-
-
-                } catch (MalformedURLException e) {
-                    Log.e(LOG_TAG, "Error processing Places API URL", e);
-                    return output;
-                } catch (IOException e) {
-                    Log.e(LOG_TAG, "Error connecting to Places API", e);
-                    return output;
-                } finally {
-                    if (conn != null) {
-                        conn.disconnect();
-                    }
-                }
-//            return resultList;
-
-                try {
-                    // Create a JSON object hierarchy from the results
-                    //Log.i(myTag,jsonResults.toString());
-                    JSONObject jsonObj = new JSONObject(resp);
-                    JSONArray predsJsonArray = jsonObj.getJSONArray("responses");
-                    JSONArray l = predsJsonArray.getJSONObject(0).getJSONArray("labelAnnotations");
-                    String p = l.getJSONObject(0).getString("description");
-
-                    // Extract the Place descriptions from the results
-                    output.add(p);
-                } catch (JSONException e) {
-                    Log.d(LOG_TAG, "Error processing JSON results", e);
-                }
-            }
-                categories = output;
-//            Log.d("WelcomeFragment",output);
-                return output;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<String> results) {
-            Log.i(LOG_TAG,"post");
-            DisplayMapFragment.categories = results;
-        }
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-        }
     }
 
 }

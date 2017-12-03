@@ -41,7 +41,8 @@ public class RequestPlacesTask extends AsyncTask<DisplayMapFragment.requestPlace
     protected ArrayList<DisplayMapFragment.Place> doInBackground(DisplayMapFragment.requestPlacesTaskParams...params){
         DisplayMapFragment.requestPlacesTaskParams param = params[0];
         ArrayList<DisplayMapFragment.Place> resultList = null;
-        ArrayList<String> keywords = param.keywords;
+        //ArrayList<String> keywords = param.keywords;
+        String keyword = param.keyword;
         double latitude = param.latitude;
         double longitude = param.longitude;
 
@@ -50,7 +51,7 @@ public class RequestPlacesTask extends AsyncTask<DisplayMapFragment.requestPlace
         try {
             // Build GET Request URL
             String queryURLString = PLACES_API_BASE + PLACES_API_SEARCH_TYPE + "?key=" + PLACES_API_KEY
-                    + "&keyword=" + URLEncoder.encode(keywords.get(0), "utf8")
+                    + "&keyword=" + URLEncoder.encode(keyword, "utf8")
                     + "&location=" + String.valueOf(latitude) + "," + String.valueOf(longitude)
                     + "&radius=" + PLACES_SEARCH_RADIUS;
 

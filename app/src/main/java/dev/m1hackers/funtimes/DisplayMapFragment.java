@@ -4,15 +4,14 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -25,19 +24,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
-import android.content.Context;
-import android.widget.Toast;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -130,7 +116,7 @@ public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCal
                         if (task.isSuccessful() && task.getResult() != null) {
                             mLastLocation = task.getResult();
                             for(int i=0;i<categories.size();i++){
-                                requestPlacesTaskParams params = new requestPlacesTaskParams();                                inp.keyword = "books";
+                                requestPlacesTaskParams params = new requestPlacesTaskParams();
                                 params.keyword = categories.get(i);
                                 params.latitude = mLastLocation.getLatitude();
                                 params.longitude = mLastLocation.getLongitude();
@@ -163,92 +149,4 @@ public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCal
             }
         }
     }
-    private class longop extends AsyncTask<Inputobj,Void,ArrayList<Place>> {
-        @Override
-        protected ArrayList<Place> doInBackground(Inputobj ...inps){
-            Inputobj inp = inps[0];
-            ArrayList<Place> resultList = null;
-            String keyword = inp.keyword;
-            double lat = inp.lat;
-            double lng = inp.lon;
-
-            HttpURLConnection conn = null;
-            StringBuilder jsonResults = new StringBuilder();
-            try {
-                StringBuilder sb = new StringBuilder(PLACES_API_BASE);
-                sb.append(TYPE_SEARCH);
-                sb.append(OUT_JSON);
-                sb.append("?sensor=false");
-                sb.append("&key=" + API_KEY);
-                sb.append("&keyword=" + URLEncoder.encode(keyword, "utf8"));
-                sb.append("&location=" + String.valueOf(lat) + "," + String.valueOf(lng));
-                sb.append("&radius=" + String.valueOf(2000));
-                System.out.println(sb.toString());
-                URL url = new URL(sb.toString());
-                //Log.i(myTag,sb.toString());
-                conn = (HttpURLConnection) url.openConnection();
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-
-
-                int read;
-                char[] buff = new char[1024];
-                while ((read = in.read(buff)) != -1) {
-                    jsonResults.append(buff, 0, read);
-                }
-
-
-            } catch (MalformedURLException e) {
-                Log.e(LOG_TAG, "Error processing Places API URL", e);
-                return resultList;
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error connecting to Places API", e);
-                return resultList;
-            } finally {
-                if (conn != null) {
-                    conn.disconnect();
-                }
-            }
-//            return resultList;
-
-            try {
-                // Create a JSON object hierarchy from the results
-                //Log.i(myTag,jsonResults.toString());
-                JSONObject jsonObj = new JSONObject(jsonResults.toString());
-                JSONArray predsJsonArray = jsonObj.getJSONArray("results");
-
-                // Extract the Place descriptions from the results
-                resultList = new ArrayList<>(predsJsonArray.length());
-                for (int i = 0; i < predsJsonArray.length(); i++) {
-                    Place place = new Place();
-                    place.reference = predsJsonArray.getJSONObject(i).getString("reference");
-                    place.name = predsJsonArray.getJSONObject(i).getString("name");
-                    JSONObject location = predsJsonArray.getJSONObject(i).getJSONObject("geometry");
-                    location = location.getJSONObject("location");
-                    place.lat = Double.parseDouble(location.getString("lat"));
-                    place.lon = Double.parseDouble(location.getString("lng"));
-                    Log.i(LOG_TAG,place.name);
-                    resultList.add(place);
-                }
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "Error processing JSON results", e);
-            }
-            results = resultList;
-            return resultList;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<Place> results) {
-            Log.i(LOG_TAG,"post");
-            placePointers(results);
-        }
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-        }
-    }
-
 }
