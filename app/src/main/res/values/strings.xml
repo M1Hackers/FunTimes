@@ -13,9 +13,7 @@
         <item>100</item>
     </string-array>
     <string name="execute_button_text">Load Images &amp; Display Map</string>
-    <string name="permission_denied_msg">Permission denied</string>
     <string name="no_storage_msg">No external storage detected.</string>
     <string name="no_pictures_msg">No pictures found</string>
-    <string name="cant_read_pics_msg">Unable to read pictures</string>
     <string name="no_location_msg">Unable to determine location.</string>
 </resources>
