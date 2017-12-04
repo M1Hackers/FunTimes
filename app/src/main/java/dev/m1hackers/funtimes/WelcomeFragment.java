@@ -45,20 +45,26 @@ public class WelcomeFragment extends CustomFragment implements RequestImageKeywo
         put(Manifest.permission.ACCESS_FINE_LOCATION, 2);
     }};
     private static final String LOG_TAG = "WelcomeFragment";
-
+    protected MainActivity thisActivity;
+    protected WelcomeFragment thisFragment;
     Spinner imgNumSpinner;
     Button executeButton;
     private OnMapRequestListener mapDisplayCallback;
-    protected MainActivity thisActivity;
-    protected WelcomeFragment thisFragment;
     private ArrayList<String> imgKeywords;
-
-    public interface OnMapRequestListener {
-        void onMapRequest(ArrayList<String> stringArrayList);
-    }
 
     public WelcomeFragment() {
         thisFragment = this;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    public static Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean filter) {
+        float ratio = Math.min(
+                maxImageSize / realImage.getWidth(),
+                maxImageSize / realImage.getHeight());
+        int width = Math.round(ratio * realImage.getWidth());
+        int height = Math.round(ratio * realImage.getHeight());
+
+        return Bitmap.createScaledBitmap(realImage, width, height, filter);
     }
 
     /* Return point for RequestImageKeywordsTask */
@@ -136,23 +142,22 @@ public class WelcomeFragment extends CustomFragment implements RequestImageKeywo
         Log.d(LOG_TAG,"Executing onRequestPermissionResult");
         if (requestCode == requestCodeMap.get(Manifest.permission.READ_EXTERNAL_STORAGE)) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d(LOG_TAG,"Storage permission granted.");
+                Log.i(LOG_TAG, "Storage permission granted");
                 startImageQuery(Integer.parseInt(imgNumSpinner.getSelectedItem().toString()));
             } else {
-                Log.d(LOG_TAG,"Location permission denied.");
+                Log.i(LOG_TAG, "Storage permission denied");
             }
         }
         else if(requestCode == requestCodeMap.get(Manifest.permission.ACCESS_FINE_LOCATION)) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d(LOG_TAG,"Location permission granted.");
-                Log.v(LOG_TAG,"Displaying map...");
+                Log.i(LOG_TAG, "Location permission granted");
                 mapDisplayCallback.onMapRequest(imgKeywords);
             } else {
-                Log.d(LOG_TAG,"Location permission denied.");
+                Log.i(LOG_TAG, "Location permission denied");
             }
         }
         else {
-            Log.d(LOG_TAG,"Nonexistent permission.");
+            Log.d(LOG_TAG, "Nonexistent permission");
         }
     }
 
@@ -166,6 +171,36 @@ public class WelcomeFragment extends CustomFragment implements RequestImageKeywo
         mTask.execute(picNum);
     }
 
+    private File[] listDirectoryRecursive(File dir, boolean ignoreHidden, ArrayList<String> ignoreList) {
+        // Check that this is a directory that we can read
+        if (!dir.exists() || !dir.canRead() || !dir.isDirectory()
+                || (ignoreHidden && dir.isHidden())) return null;
+
+        // List files
+        File[] fileArray = dir.listFiles();
+        List<File> fileList = new ArrayList<>(Arrays.asList(fileArray));
+        // Iterate through files (and directories) in the directory
+        for (int i = 0; i < fileList.size(); i++) {
+            File cFile = fileList.get(i);
+            if (cFile.isDirectory()) {
+                if (ignoreList != null && ignoreList.contains(cFile.getName())) {
+                    fileList.remove(i);
+                } else {
+                    File[] subDirFiles = listDirectoryRecursive(fileList.get(i), ignoreHidden, ignoreList);
+                    fileList.remove(i);
+                    if (subDirFiles != null) fileList.addAll(Arrays.asList(subDirFiles));
+                }
+                i--;
+            }
+        }
+
+        return fileList.toArray(new File[]{});
+    }
+
+    public interface OnMapRequestListener {
+        void onMapRequest(ArrayList<String> stringArrayList);
+    }
+
     @SuppressLint("StaticFieldLeak")
     private class StartImageQueryTask extends AsyncTask<Integer,Void,Void> {
 
@@ -176,7 +211,7 @@ public class WelcomeFragment extends CustomFragment implements RequestImageKeywo
             final int JPEG_QUALITY = 70;
 
             // Check if there is an external storage mounted and accessible
-            Log.v(LOG_TAG,"Gathering picture list.");
+            Log.d(LOG_TAG, "Gathering picture list...");
             String storageState = Environment.getExternalStorageState();
             if(!(Environment.MEDIA_MOUNTED.equals(storageState) ||
                     Environment.MEDIA_MOUNTED_READ_ONLY.equals(storageState))) {
@@ -218,6 +253,7 @@ public class WelcomeFragment extends CustomFragment implements RequestImageKeywo
             List<File> selectedImgList = new ArrayList<>();
             for(int i = 0; i < picNum; i++) {
                 int imgIndex = dateArray.get(i).get(0).intValue();
+                Log.i(LOG_TAG, "Adding picture: " + imgList[imgIndex].getName());
                 selectedImgList.add(imgList[imgIndex]);
             }
 
@@ -229,7 +265,7 @@ public class WelcomeFragment extends CustomFragment implements RequestImageKeywo
                 try{
                     fis = new FileInputStream(imgFile);
                 } catch(FileNotFoundException e) {
-                    Log.e(LOG_TAG,"File not found (probably deleted since directory was listed)");
+                    Log.e(LOG_TAG, "File not found (it has probably been deleted since the parent directory was listed)");
                     e.printStackTrace();
                     continue;
                 }
@@ -249,43 +285,6 @@ public class WelcomeFragment extends CustomFragment implements RequestImageKeywo
             mTask.execute(encodedImageList);
             return null;
         }
-    }
-
-    private File[] listDirectoryRecursive(File dir, boolean ignoreHidden, ArrayList<String> ignoreList) {
-        // Check that this is a directory that we can read
-        if(!dir.exists() || !dir.canRead() || !dir.isDirectory()
-                || (ignoreHidden && dir.isHidden())) return null;
-
-        // List files
-        File[] fileArray = dir.listFiles();
-        List<File> fileList = new ArrayList<>(Arrays.asList(fileArray));
-        // Iterate through files (and directories) in the directory
-        for(int i = 0; i < fileList.size(); i++) {
-            File cFile = fileList.get(i);
-            if(cFile.isDirectory()) {
-                if(ignoreList != null && ignoreList.contains(cFile.getName())) {
-                    fileList.remove(i);
-                } else {
-                    File[] subDirFiles = listDirectoryRecursive(fileList.get(i), ignoreHidden, ignoreList);
-                    fileList.remove(i);
-                    if (subDirFiles != null) fileList.addAll(Arrays.asList(subDirFiles));
-                }
-                i--;
-            }
-        }
-
-        return fileList.toArray(new File[]{});
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    public static Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean filter) {
-        float ratio = Math.min(
-                maxImageSize / realImage.getWidth(),
-                maxImageSize / realImage.getHeight());
-        int width = Math.round(ratio * realImage.getWidth());
-        int height = Math.round(ratio * realImage.getHeight());
-
-        return Bitmap.createScaledBitmap(realImage, width, height, filter);
     }
 
 }

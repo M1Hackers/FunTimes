@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             mWelcomeFragment.setArguments(getIntent().getExtras());
 
             // Add the fragment to the 'fragment_container' FrameLayout
-            Log.v(LOG_TAG,"Starting WelcomeFragment");
+            Log.d(LOG_TAG, "Starting WelcomeFragment");
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.fragment_container, mWelcomeFragment).commit();
         }
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
     /* Return point from WelcomeFragment after RequestImageKeywordsTask has been executed. */
     @Override
     public void onMapRequest(ArrayList<String> keywordList) {
-        Log.v(LOG_TAG,"Switching to DisplayMapFragment");
+        Log.d(LOG_TAG, "Switching to DisplayMapFragment");
 
         // Create fragment with arguments
         DisplayMapFragment mMapFragment = new DisplayMapFragment();

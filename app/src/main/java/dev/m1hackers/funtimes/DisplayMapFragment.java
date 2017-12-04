@@ -31,11 +31,10 @@ import java.util.ArrayList;
 public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCallback {
 
     private static final String LOG_TAG = "DisplayMapFragment";
-
+    private static ArrayList<String> keywordList = new ArrayList<>();
     protected Location mLastLocation;
     protected MainActivity mActivity;
     private GoogleMap mMap;
-    private static ArrayList<String> keywordList = new ArrayList<>();
 
     public DisplayMapFragment() {
         // Required empty public constructor
@@ -83,7 +82,7 @@ public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCal
     @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        Log.v(LOG_TAG,"Executing onMapReady callback.");
+        Log.d(LOG_TAG, "Executing onMapReady callback.");
         mMap = googleMap;
         mMap.setMyLocationEnabled(true);
         FusedLocationProviderClient mFusedLocationClient = LocationServices.getFusedLocationProviderClient(mActivity);
@@ -91,16 +90,16 @@ public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCal
                 new OnCompleteListener<Location>() {
                     @Override
                     public void onComplete(@NonNull Task<Location> task) {
-                        Log.v(LOG_TAG,"Executing LastLocation onCompleteListener ");
+                        Log.d(LOG_TAG, "Executing LastLocation's onCompleteListener ");
                         if (task.isSuccessful() && task.getResult() != null) {
-                            Log.v(LOG_TAG,"LastLocation query successful");
+                            Log.i(LOG_TAG, "Successfully determined location");
                             mLastLocation = task.getResult();
                             for(int i = 0; i< keywordList.size(); i++){
                                 requestPlacesTaskParams params = new requestPlacesTaskParams();
                                 params.keyword = keywordList.get(i);
                                 params.latitude = mLastLocation.getLatitude();
                                 params.longitude = mLastLocation.getLongitude();
-                                Log.v(LOG_TAG,"Executing RequestPlacesTask");
+                                Log.d(LOG_TAG, "Executing RequestPlacesTask");
                                 RequestPlacesTask mRequestPlacesTask = new RequestPlacesTask(
                                         DisplayMapFragment.this);
                                 mRequestPlacesTask.execute(params);
@@ -136,7 +135,6 @@ public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCal
         double lat;
         double lon;
         String name;
-        String formatted_address;
     }
 
     class requestPlacesTaskParams {

@@ -7,14 +7,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 /**
  * This {@link AsyncTask} takes a list of Base64 encoded images and queries keywords associated with
@@ -24,12 +25,9 @@ import java.util.Scanner;
 class RequestImageKeywordsTask extends AsyncTask<ArrayList<String>, Void, ArrayList<String>> {
 
     private static final String LOG_TAG = "RequestImageKey~Task";
+    private static final String VISION_API_URI = "https://vision.googleapis.com/v1/images:annotate";
 
     private OnTaskCompleted listener;
-
-    public interface OnTaskCompleted {
-        void onTaskCompleted(ArrayList<String> stringArrayList);
-    }
 
     RequestImageKeywordsTask(OnTaskCompleted listener) {
         this.listener = listener;
@@ -37,92 +35,95 @@ class RequestImageKeywordsTask extends AsyncTask<ArrayList<String>, Void, ArrayL
 
     @SafeVarargs
     @Override
-    protected final ArrayList<String> doInBackground(ArrayList<String>... inps) {
-        ArrayList<String> inp = inps[0];
-        ArrayList<String> output = new ArrayList<>();
-        for (int i = 0; i < inp.size(); i++) {
-            String enc_string = inp.get(i);
+    protected final ArrayList<String> doInBackground(ArrayList<String>... params) {
+        ArrayList<String> encodedImageList = params[0];
+        ArrayList<String> keywordList = new ArrayList<>();
+
+        Log.d(LOG_TAG, "Sending queries to Google Cloud Vision API");
+
+        // Iterate through list of (Base64 encoded) images
+        for (int i = 0; i < encodedImageList.size(); i++) {
+            String encodedImage = encodedImageList.get(i);
             HttpURLConnection conn = null;
-            StringBuilder resp = new StringBuilder();
+            StringBuilder jsonResultString = new StringBuilder();
 
             try {
-                URL url = new URL("https://vision.googleapis.com/v1/images:annotate?key=" + GlobalSecretKeys.GOOGLE_API_KEY);
-                conn = (HttpURLConnection) url.openConnection();
+                // Build request URL
+                String requestURLString = VISION_API_URI + "?key=" + GlobalSecretKeys.GOOGLE_API_KEY;
+                URL requestURL = new URL(requestURLString);
+
+                // Connect
+                conn = (HttpURLConnection) requestURL.openConnection();
                 conn.setDoOutput(true);
                 conn.setDoInput(true);
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
-                Log.d(LOG_TAG, "Connection established.");
 
+                // Build request JSON
                 JSONObject jsonRequestObj = new JSONObject();
                 try {
                     JSONObject jsonRequest = new JSONObject();
                     JSONObject jsonFeature = new JSONObject();
                     JSONObject jsonImage = new JSONObject();
                     jsonFeature.put("type", "LABEL_DETECTION");
-                    jsonImage.put("content", enc_string);
+                    jsonImage.put("content", encodedImage);
                     jsonRequest.put("features", jsonFeature);
                     jsonRequest.put("image", jsonImage);
                     jsonRequestObj.put("requests", jsonRequest);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                Log.d(LOG_TAG, jsonRequestObj.toString());
 
+                // Send POST request
                 BufferedWriter in = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
-                Log.d(LOG_TAG, "Got output stream");
-                in.write(jsonRequestObj.toString()); //("{\"requests\":  [{ \"features\":  [ {\"type\": \"LABEL_DETECTION\""+ "}], \"image\": {\"content\": " + enc_string + "}}]}");
+                in.write(jsonRequestObj.toString());
                 in.flush();
                 in.close();
-                Log.d(LOG_TAG, in.toString());
-                String response = conn.getResponseMessage();
 
+                // Read response into jsonResultString
                 if (conn.getInputStream() == null) {
-                    Log.e("here", url.toString());
-                    return output;
+                    Log.e(LOG_TAG, "No response to POST request from " + requestURLString);
+                    return keywordList;
                 }
-
-                Scanner httpScanner = new Scanner(conn.getInputStream());
-                while (httpScanner.hasNext()) {
-                    String line = httpScanner.nextLine();
-                    resp.append(line);
+                BufferedReader inputStreamReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                int numBytes;
+                char[] readBuffer = new char[1024];
+                while ((numBytes = inputStreamReader.read(readBuffer)) != -1) {
+                    jsonResultString.append(readBuffer, 0, numBytes);
                 }
-                httpScanner.close();
 
 
             } catch (MalformedURLException e) {
-                Log.e(LOG_TAG, "Error processing Places API URL", e);
-                return output;
+                Log.e(LOG_TAG, "Error processing Maps API URL", e);
+                return keywordList;
             } catch (IOException e) {
-                Log.e(LOG_TAG, "Error connecting to Places API", e);
-                return output;
+                Log.e(LOG_TAG, "Error connecting to Maps API", e);
+                return keywordList;
             } finally {
                 if (conn != null) {
                     conn.disconnect();
                 }
             }
-//            return resultList;
 
             try {
-                // Create a JSON object hierarchy from the results
-                //Log.i(myTag,jsonResults.toString());
-                JSONObject jsonObj = new JSONObject(resp.toString());
-                JSONArray predsJsonArray = jsonObj.getJSONArray("responses");
-                JSONArray l = predsJsonArray.getJSONObject(0).getJSONArray("labelAnnotations");
-                String p = l.getJSONObject(0).getString("description");
-
-                // Extract the Place descriptions from the results
-                output.add(p);
+                // Parse received JSON object
+                JSONObject jsonResultObj = new JSONObject(jsonResultString.toString());
+                JSONArray jsonResponseArray = jsonResultObj.getJSONArray("responses");
+                JSONArray jsonLabelArray = jsonResponseArray.getJSONObject(0).getJSONArray("labelAnnotations");
+                // Only topmost label (with highest score)
+                String jsonDescriptionString = jsonLabelArray.getJSONObject(0).getString("description");
+                // Add image keyword to output
+                Log.i(LOG_TAG, "Adding keyword: " + jsonDescriptionString);
+                keywordList.add(jsonDescriptionString);
             } catch (JSONException e) {
-                Log.d(LOG_TAG, "Error processing JSON results", e);
+                Log.e(LOG_TAG, "Error processing JSON results", e);
             }
         }
-        return output;
+        return keywordList;
     }
 
     @Override
     protected void onPostExecute(ArrayList<String> results) {
-        Log.i(LOG_TAG, "post");
         listener.onTaskCompleted(results);
     }
 
@@ -132,5 +133,9 @@ class RequestImageKeywordsTask extends AsyncTask<ArrayList<String>, Void, ArrayL
 
     @Override
     protected void onProgressUpdate(Void... values) {
+    }
+
+    public interface OnTaskCompleted {
+        void onTaskCompleted(ArrayList<String> stringArrayList);
     }
 }
