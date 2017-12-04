@@ -22,13 +22,12 @@ import java.util.ArrayList;
  * parent {@link DisplayMapFragment}
  */
 
-public class RequestPlacesTask extends AsyncTask<DisplayMapFragment.requestPlacesTaskParams,Void,
+public class RequestPlacesTask extends AsyncTask<DisplayMapFragment.requestPlacesTaskParams, Void,
         ArrayList<DisplayMapFragment.Place>> {
 
     private static final String LOG_TAG = "RequestPlacesTask";
     private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
     private static final String PLACES_API_SEARCH_TYPE = "/nearbysearch/json";
-    private static final String PLACES_API_KEY = "AIzaSyCoyESSSVsupzauMVKA24FDf_DC4ETsimI";
     private static final int PLACES_SEARCH_RADIUS = 2000;
 
     private DisplayMapFragment mFragment;
@@ -38,7 +37,7 @@ public class RequestPlacesTask extends AsyncTask<DisplayMapFragment.requestPlace
     }
 
     @Override
-    protected ArrayList<DisplayMapFragment.Place> doInBackground(DisplayMapFragment.requestPlacesTaskParams...params){
+    protected ArrayList<DisplayMapFragment.Place> doInBackground(DisplayMapFragment.requestPlacesTaskParams... params) {
         DisplayMapFragment.requestPlacesTaskParams param = params[0];
         ArrayList<DisplayMapFragment.Place> resultList = null;
         //ArrayList<String> keywords = param.keywords;
@@ -50,7 +49,7 @@ public class RequestPlacesTask extends AsyncTask<DisplayMapFragment.requestPlace
         StringBuilder jsonResults = new StringBuilder();
         try {
             // Build GET Request URL
-            String queryURLString = PLACES_API_BASE + PLACES_API_SEARCH_TYPE + "?key=" + PLACES_API_KEY
+            String queryURLString = PLACES_API_BASE + PLACES_API_SEARCH_TYPE + "?key=" + GlobalSecretKeys.GOOGLE_API_KEY
                     + "&keyword=" + URLEncoder.encode(keyword, "utf8")
                     + "&location=" + String.valueOf(latitude) + "," + String.valueOf(longitude)
                     + "&radius=" + PLACES_SEARCH_RADIUS;
@@ -80,7 +79,7 @@ public class RequestPlacesTask extends AsyncTask<DisplayMapFragment.requestPlace
 
         try {
             // Create a JSON object from the results
-            Log.d(LOG_TAG,jsonResults.toString());
+            Log.d(LOG_TAG, jsonResults.toString());
             JSONObject jsonResultObj = new JSONObject(jsonResults.toString());
             JSONArray jsonResultArray = jsonResultObj.getJSONArray("results");
 
@@ -94,7 +93,7 @@ public class RequestPlacesTask extends AsyncTask<DisplayMapFragment.requestPlace
                 location = location.getJSONObject("location");
                 place.lat = Double.parseDouble(location.getString("lat"));
                 place.lon = Double.parseDouble(location.getString("lng"));
-                Log.i(LOG_TAG,place.name);
+                Log.i(LOG_TAG, place.name);
                 resultList.add(place);
             }
         } catch (JSONException e) {

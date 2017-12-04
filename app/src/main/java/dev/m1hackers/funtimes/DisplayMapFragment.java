@@ -42,26 +42,10 @@ public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCal
     private static final String OUT_JSON = "/json";
     private static final String API_KEY = "AIzaSyCoyESSSVsupzauMVKA24FDf_DC4ETsimI";
 
-    public static ArrayList<String> categories = null;
-    private GoogleMap mMap;
+    public static ArrayList<String> categories;
     protected Location mLastLocation;
     protected MainActivity mActivity;
-    private ArrayList<Place> results = null;
-    static class Place{
-        String reference;
-        double lat;
-        double lon;
-        String name;
-        String formatted_address;
-    }
-
-    class requestPlacesTaskParams {
-        //ArrayList<String> keywords = new ArrayList<>();
-        String keyword;
-        double latitude;
-        double longitude;
-    }
-
+    private GoogleMap mMap;
 
     public DisplayMapFragment() {
         // Required empty public constructor
@@ -93,6 +77,7 @@ public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCal
     public void onAttach(Context context) {
         super.onAttach(context);
         mActivity = (MainActivity) context;
+        categories = mActivity.categories;
     }
 
     /**
@@ -148,5 +133,20 @@ public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCal
 
             }
         }
+    }
+
+    static class Place{
+        String reference;
+        double lat;
+        double lon;
+        String name;
+        String formatted_address;
+    }
+
+    class requestPlacesTaskParams {
+        //ArrayList<String> keywords = new ArrayList<>();
+        String keyword;
+        double latitude;
+        double longitude;
     }
 }

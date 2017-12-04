@@ -7,14 +7,13 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import java.io.File;
+import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements WelcomeFragment.OnMapRequestListener,
-        WelcomeFragment.OnImgListReadyListener {
+public class MainActivity extends AppCompatActivity implements WelcomeFragment.OnMapRequestListener {
 
     private static final String LOG_TAG = "MainActivity";
 
-    protected File[] sharedImgList = null;
+    protected ArrayList<String> categories = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,9 +79,5 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         mTransaction.addToBackStack(null);
         mTransaction.commit();
 
-    }
-
-    public void onImgListReady(File[] imgList) {
-        sharedImgList = imgList;
     }
 }

@@ -35,11 +35,7 @@ import java.util.List;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class WelcomeFragment extends CustomFragment {
-
-    public ArrayList<String> categories = null;
-
-    private static final String API_key = "AIzaSyAPPm6FmMfhXHxKoScqLuRcD-9H3QSm8f4";
+public class WelcomeFragment extends CustomFragment implements RequestImageKeywordsTask.OnTaskCompleted {
 
     private static final Hashtable<String, Integer> requestCodeMap = new Hashtable<String, Integer>() {{
         put(Manifest.permission.READ_EXTERNAL_STORAGE, 1);
@@ -51,12 +47,12 @@ public class WelcomeFragment extends CustomFragment {
     Button uploadButton;
     Button displayMapButton;
     private OnMapRequestListener mapDisplayCallback;
-    private OnImgListReadyListener imgListReadyCallback;
     protected MainActivity thisActivity;
     protected WelcomeFragment thisFragment;
 
-    public interface OnImgListReadyListener {
-        void onImgListReady(File[] imgList);
+    @Override
+    public void onTaskCompleted(ArrayList<String> stringArrayList) {
+        thisActivity.categories = stringArrayList;
     }
 
     public interface OnMapRequestListener {
@@ -134,13 +130,9 @@ public class WelcomeFragment extends CustomFragment {
                     + " must implement OnMapRequestListener");
         }
 
-        try {
-            imgListReadyCallback = (OnImgListReadyListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnImgListReadyListener");
+        if(activity instanceof MainActivity) {
+            thisActivity = (MainActivity) activity;
         }
-        thisActivity = (MainActivity) activity;
     }
 
     /* Return point for permissions dialog, toasts the result. */
@@ -280,7 +272,6 @@ public class WelcomeFragment extends CustomFragment {
                 byte[] b = baos.toByteArray();
                 String encImage = Base64.encodeToString(b, Base64.DEFAULT);
                 Log.e("here",encImage);
-//            Base64.de
                 return_list.add(encImage);
                 Log.e("here","encoded "+ Integer.toString(encImage.length()));
             }catch(NullPointerException e){
@@ -289,12 +280,8 @@ public class WelcomeFragment extends CustomFragment {
             }
         }
         Toast.makeText(WelcomeFragment.this.getActivity(), message.toString(),Toast.LENGTH_LONG).show();
-
-        // TODO: implement file uploading.
-        //imgListReadyCallback.onImgListReady(files);
         Log.i("herehere",returned);
-//        return returned;
-        RequestImageKeywordsTask l = new RequestImageKeywordsTask();
+        RequestImageKeywordsTask l = new RequestImageKeywordsTask(thisFragment);
         l.execute(return_list);
     }
     public static Bitmap scaleDown(Bitmap realImage, float maxImageSize,

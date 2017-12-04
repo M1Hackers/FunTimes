@@ -21,55 +21,64 @@ import java.util.Scanner;
  * them from the Google Vision API.
  */
 
-class RequestImageKeywordsTask extends AsyncTask<ArrayList<String>,Void,ArrayList<String>> {
+class RequestImageKeywordsTask extends AsyncTask<ArrayList<String>, Void, ArrayList<String>> {
 
-    private static final String API_key = "AIzaSyAPPm6FmMfhXHxKoScqLuRcD-9H3QSm8f4";
     private static final String LOG_TAG = "RequestImageKey~Task";
 
+    private OnTaskCompleted listener;
+
+    public interface OnTaskCompleted {
+        void onTaskCompleted(ArrayList<String> stringArrayList);
+    }
+
+    RequestImageKeywordsTask(OnTaskCompleted listener) {
+        this.listener = listener;
+    }
+
     @Override
-    protected ArrayList<String> doInBackground(ArrayList<String>...inps){
+    protected ArrayList<String> doInBackground(ArrayList<String>... inps) {
         ArrayList<String> inp = inps[0];
         ArrayList<String> output = new ArrayList<>();
-        for(int i=0;i<inp.size();i++) {
+        for (int i = 0; i < inp.size(); i++) {
             String enc_string = inp.get(i);
             HttpURLConnection conn = null;
             StringBuilder resp = new StringBuilder();
 
             try {
-                URL url = new URL("https://vision.googleapis.com/v1/images:annotate?key=" + API_key);
+                URL url = new URL("https://vision.googleapis.com/v1/images:annotate?key=" + GlobalSecretKeys.GOOGLE_API_KEY);
                 //Log.i(myTag,sb.toString());
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setDoOutput(true);
                 conn.setDoInput(true);
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
-                Log.d("WelcomeFragment","Connection established.");
+                Log.d("WelcomeFragment", "Connection established.");
 
                 JSONObject jsonRequestObj = new JSONObject();
                 try {
                     JSONObject jsonRequest = new JSONObject();
                     JSONObject jsonFeature = new JSONObject();
                     JSONObject jsonImage = new JSONObject();
-                    jsonFeature.put("type","LABEL_DETECTION");
-                    jsonImage.put("content",enc_string);
-                    jsonRequest.put("features",jsonFeature);
-                    jsonRequest.put("image",jsonImage);
-                    jsonRequestObj.put("requests",jsonRequest);
+                    jsonFeature.put("type", "LABEL_DETECTION");
+                    jsonImage.put("content", enc_string);
+                    jsonRequest.put("features", jsonFeature);
+                    jsonRequest.put("image", jsonImage);
+                    jsonRequestObj.put("requests", jsonRequest);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                Log.d("WelcomeFragment",jsonRequestObj.toString());
+                Log.d("WelcomeFragment", jsonRequestObj.toString());
 
                 BufferedWriter in = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
-                Log.d("WelcomeFragment","Got output stream");
+                Log.d("WelcomeFragment", "Got output stream");
                 in.write(jsonRequestObj.toString()); //("{\"requests\":  [{ \"features\":  [ {\"type\": \"LABEL_DETECTION\""+ "}], \"image\": {\"content\": " + enc_string + "}}]}");
                 in.flush();
                 in.close();
-                Log.d("here",in.toString());
+                Log.d("here", in.toString());
                 String response = conn.getResponseMessage();
 
                 if (conn.getInputStream() == null) {
-                    Log.e("here",url.toString());
+                    Log.e("here", url.toString());
                     return output;
                 }
 
@@ -108,14 +117,13 @@ class RequestImageKeywordsTask extends AsyncTask<ArrayList<String>,Void,ArrayLis
                 Log.d(LOG_TAG, "Error processing JSON results", e);
             }
         }
-//            Log.d("WelcomeFragment",output);
         return output;
     }
 
     @Override
     protected void onPostExecute(ArrayList<String> results) {
-        Log.i(LOG_TAG,"post");
-        DisplayMapFragment.categories = results;
+        Log.i(LOG_TAG, "post");
+        listener.onTaskCompleted(results);
     }
 
     @Override
