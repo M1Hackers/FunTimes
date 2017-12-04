@@ -5,7 +5,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:showIn="@layout/activity_main"
     tools:context="dev.m1hackers.funtimes.WelcomeFragment">
 
     <TextView
@@ -33,23 +32,13 @@
         app:layout_constraintTop_toBottomOf="@id/welcome_text" />
 
     <Button
-        android:id="@+id/upload_button"
+        android:id="@+id/execute_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingTop="16dp"
-        android:text="@string/upload_button_text"
+        android:text="@string/execute_button_text"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/img_num_spinner" />
-
-    <Button
-        android:id="@+id/display_map_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="16dp"
-        android:text="@string/display_map_button_text"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/upload_button" />
 
 </android.support.constraint.ConstraintLayout>

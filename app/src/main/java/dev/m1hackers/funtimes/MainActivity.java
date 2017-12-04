@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -13,8 +14,6 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
     private static final String LOG_TAG = "MainActivity";
 
-    protected ArrayList<String> categories = null;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,13 +22,11 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Check that the activity is using the layout version with
-        // the main_frame FrameLayout
-        if (findViewById(R.id.main_frame) != null) {
+        // Check that the activity is using the layout version with fragment_container
+        if (findViewById(R.id.fragment_container) != null) {
 
-            // However, if we're being restored from a previous state,
-            // then we don't need to do anything and should return or else
-            // we could end up with overlapping fragments.
+            // However, if we're being restored from a previous state, then we don't need to do
+            // anything and should return or else we could end up with overlapping fragments.
             if (savedInstanceState != null) {
                 return;
             }
@@ -42,8 +39,9 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
             mWelcomeFragment.setArguments(getIntent().getExtras());
 
             // Add the fragment to the 'fragment_container' FrameLayout
+            Log.v(LOG_TAG,"Starting WelcomeFragment");
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.main_frame, mWelcomeFragment).commit();
+                    .add(R.id.fragment_container, mWelcomeFragment).commit();
         }
 
     }
@@ -64,20 +62,28 @@ public class MainActivity extends AppCompatActivity implements WelcomeFragment.O
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Log.v(LOG_TAG,"Settings button clicked");
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    /* Return point from WelcomeFragment after RequestImageKeywordsTask has been executed. */
     @Override
-    public void onMapRequest() {
-        DisplayMapFragment mMapFragment = new DisplayMapFragment();
-        FragmentTransaction mTransaction = getSupportFragmentManager().beginTransaction();
+    public void onMapRequest(ArrayList<String> keywordList) {
+        Log.v(LOG_TAG,"Switching to DisplayMapFragment");
 
-        mTransaction.replace(R.id.main_frame, mMapFragment);
+        // Create fragment with arguments
+        DisplayMapFragment mMapFragment = new DisplayMapFragment();
+        Bundle args = new Bundle();
+        args.putStringArrayList("keywordList",keywordList);
+        mMapFragment.setArguments(args);
+
+        // Switch fragments
+        FragmentTransaction mTransaction = getSupportFragmentManager().beginTransaction();
+        mTransaction.replace(R.id.fragment_container, mMapFragment);
         mTransaction.addToBackStack(null);
         mTransaction.commit();
-
     }
 }

@@ -35,8 +35,9 @@ class RequestImageKeywordsTask extends AsyncTask<ArrayList<String>, Void, ArrayL
         this.listener = listener;
     }
 
+    @SafeVarargs
     @Override
-    protected ArrayList<String> doInBackground(ArrayList<String>... inps) {
+    protected final ArrayList<String> doInBackground(ArrayList<String>... inps) {
         ArrayList<String> inp = inps[0];
         ArrayList<String> output = new ArrayList<>();
         for (int i = 0; i < inp.size(); i++) {
@@ -46,13 +47,12 @@ class RequestImageKeywordsTask extends AsyncTask<ArrayList<String>, Void, ArrayL
 
             try {
                 URL url = new URL("https://vision.googleapis.com/v1/images:annotate?key=" + GlobalSecretKeys.GOOGLE_API_KEY);
-                //Log.i(myTag,sb.toString());
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setDoOutput(true);
                 conn.setDoInput(true);
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
-                Log.d("WelcomeFragment", "Connection established.");
+                Log.d(LOG_TAG, "Connection established.");
 
                 JSONObject jsonRequestObj = new JSONObject();
                 try {
@@ -67,14 +67,14 @@ class RequestImageKeywordsTask extends AsyncTask<ArrayList<String>, Void, ArrayL
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                Log.d("WelcomeFragment", jsonRequestObj.toString());
+                Log.d(LOG_TAG, jsonRequestObj.toString());
 
                 BufferedWriter in = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
-                Log.d("WelcomeFragment", "Got output stream");
+                Log.d(LOG_TAG, "Got output stream");
                 in.write(jsonRequestObj.toString()); //("{\"requests\":  [{ \"features\":  [ {\"type\": \"LABEL_DETECTION\""+ "}], \"image\": {\"content\": " + enc_string + "}}]}");
                 in.flush();
                 in.close();
-                Log.d("here", in.toString());
+                Log.d(LOG_TAG, in.toString());
                 String response = conn.getResponseMessage();
 
                 if (conn.getInputStream() == null) {

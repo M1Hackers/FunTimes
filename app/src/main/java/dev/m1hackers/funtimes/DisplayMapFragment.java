@@ -1,6 +1,5 @@
 package dev.m1hackers.funtimes;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.location.Location;
@@ -25,27 +24,18 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 
 
 /** A Fragment for displaying the map with the POI
  */
 public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCallback {
 
-    private static final Hashtable<String, Integer> requestCodeMap = new Hashtable<String, Integer>() {{
-        put(Manifest.permission.ACCESS_FINE_LOCATION, 2);
-    }};
     private static final String LOG_TAG = "DisplayMapFragment";
-    private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
-    private static final String TYPE_DETAILS = "/details";
-    private static final String TYPE_SEARCH = "/nearbysearch";
-    private static final String OUT_JSON = "/json";
-    private static final String API_KEY = "AIzaSyCoyESSSVsupzauMVKA24FDf_DC4ETsimI";
 
-    public static ArrayList<String> categories;
     protected Location mLastLocation;
     protected MainActivity mActivity;
     private GoogleMap mMap;
+    private static ArrayList<String> keywordList = new ArrayList<>();
 
     public DisplayMapFragment() {
         // Required empty public constructor
@@ -53,9 +43,12 @@ public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCal
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.d("DisplayMapFragment","DisplayMapFragment onCreate method executing.");
+
         super.onCreate(savedInstanceState);
 
-        Log.d("DisplayMapFragment","DisplayMapFragment onCreate method executing.");
+        Bundle args = getArguments();
+        if (args != null) keywordList = args.getStringArrayList("keywordList");
     }
 
     @Override
@@ -77,7 +70,6 @@ public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCal
     public void onAttach(Context context) {
         super.onAttach(context);
         mActivity = (MainActivity) context;
-        categories = mActivity.categories;
     }
 
     /**
@@ -91,6 +83,7 @@ public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCal
     @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        Log.v(LOG_TAG,"Executing onMapReady callback.");
         mMap = googleMap;
         mMap.setMyLocationEnabled(true);
         FusedLocationProviderClient mFusedLocationClient = LocationServices.getFusedLocationProviderClient(mActivity);
@@ -98,13 +91,16 @@ public class DisplayMapFragment extends CustomFragment  implements OnMapReadyCal
                 new OnCompleteListener<Location>() {
                     @Override
                     public void onComplete(@NonNull Task<Location> task) {
+                        Log.v(LOG_TAG,"Executing LastLocation onCompleteListener ");
                         if (task.isSuccessful() && task.getResult() != null) {
+                            Log.v(LOG_TAG,"LastLocation query successful");
                             mLastLocation = task.getResult();
-                            for(int i=0;i<categories.size();i++){
+                            for(int i = 0; i< keywordList.size(); i++){
                                 requestPlacesTaskParams params = new requestPlacesTaskParams();
-                                params.keyword = categories.get(i);
+                                params.keyword = keywordList.get(i);
                                 params.latitude = mLastLocation.getLatitude();
                                 params.longitude = mLastLocation.getLongitude();
+                                Log.v(LOG_TAG,"Executing RequestPlacesTask");
                                 RequestPlacesTask mRequestPlacesTask = new RequestPlacesTask(
                                         DisplayMapFragment.this);
                                 mRequestPlacesTask.execute(params);

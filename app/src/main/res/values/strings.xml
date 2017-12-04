@@ -4,7 +4,6 @@
     <string name="welcome_message">Welcome to Fun Times!\n\nThis app will analyze the pictures taken
         with your camera, and try to recommend nearby places based on their content.\n\nHave fun!\n
         - The M1Hackers -</string>
-    <string name="upload_button_text">Upload Images</string>
     <string-array name="img_num_array">
         <item>10</item>
         <item>20</item>
@@ -13,12 +12,10 @@
         <item>50</item>
         <item>100</item>
     </string-array>
-    <string name="permission_granted_msg">Permission granted!</string>
-    <string name="permission_denied_msg">Permission denied&#8230; :(</string>
-    <string name="no_storage_msg">No SD Card detected!</string>
-    <string name="no_pictures_msg">No pictures found!</string>
-    <string name="cant_read_pics_msg">Unable to read pictures.</string>
-    <string name="title_activity_maps">Map</string>
-    <string name="display_map_button_text">Display Map</string>
-    <string name="no_location_msg">"Unable to determine location."</string>
+    <string name="execute_button_text">Load Images &amp; Display Map</string>
+    <string name="permission_denied_msg">Permission denied</string>
+    <string name="no_storage_msg">No external storage detected.</string>
+    <string name="no_pictures_msg">No pictures found</string>
+    <string name="cant_read_pics_msg">Unable to read pictures</string>
+    <string name="no_location_msg">Unable to determine location.</string>
 </resources>
